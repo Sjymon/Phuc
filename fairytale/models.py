@@ -1,17 +1,19 @@
 from django.db import models
 
+
 class Categories(models.Model):
     name = models.CharField(max_length=200, blank=False)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='children')
+    parent = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, blank=True, null=True, related_name='children')
     date_created = models.DateTimeField(auto_now=False, auto_now_add=False)
     date_updated = models.DateTimeField(auto_now=False, auto_now_add=False)
     description = models.TextField()
     slug = models.SlugField()
-    
+
     class Meta:
         unique_together = ('slug', 'parent')
         verbose_name_plural = "categories"
-    
+
     def __str__(self):
         full_path = [self.name]
 
@@ -20,7 +22,7 @@ class Categories(models.Model):
         while k is not None:
             full_path.append(k.name)
             k = k.parent
-        
+
         return ' -> '.join(full_path[::-1])
 
 
@@ -28,20 +30,37 @@ class Authors(models.Model):
     name = models.CharField(max_length=200, blank=False)
     status = models.BooleanField(default=True)
 
+
 class Books(models.Model):
     full_name = models.CharField(max_length=50)
+    category_id = models.ManyToManyField(Categories)
+    authors_name = models.ManyToManyField(Authors)
     date_created = models.DateTimeField(auto_now=False, auto_now_add=False)
     date_updated = models.DateTimeField(auto_now=False, auto_now_add=False)
     active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True)
 
+
+class Stories(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    authors_name = models.ManyToManyField(Authors)
+    category_id = models.ForeignKey(Categories, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now=False, auto_now_add=False)
+    updated = models.DateTimeField(auto_now=False, auto_now_add=False)
+    status = models.BooleanField(default=True)
+    view = models.IntegerField(default=0)
+
+
 class Chapters(models.Model):
+    book_name = models.ForeignKey(Books, on_delete=models.CASCADE)
     name = models.CharField(max_length=220, blank=False)
     story_id = models.IntegerField(default=0)
     link_img = models.ImageField()
     created = models.DateTimeField(auto_now=False, auto_now_add=False)
     status = models.BooleanField(default=True)
     ordering = models.IntegerField(default=0)
+
 
 class Generals(models.Model):
     # Tên website
@@ -66,12 +85,3 @@ class Generals(models.Model):
     fax = models.CharField(max_length=225)
     # logo công ty
     logo = models.ImageField()
-
-class Stories(models.Model):
-    name = models.CharField(max_length=200)
-    description = models.TextField()
-    category_id = models.ForeignKey(Categories, on_delete=models.CASCADE)
-    created = models.DateTimeField(auto_now=False, auto_now_add=False)
-    updated = models.DateTimeField(auto_now=False, auto_now_add=False)
-    status = models.BooleanField(default=True)
-    view = models.IntegerField(default=0)
