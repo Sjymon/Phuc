@@ -1,0 +1,2 @@
+# Phuc
+Basic Django
